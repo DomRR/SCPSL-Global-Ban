@@ -6,9 +6,6 @@ using Smod2.Events;
 using System.Threading;
 using System;
 using System.Collections.Generic;
-using System.Security.Cryptography.X509Certificates;
-using System.Net.Security;
-using System.Net;
 
 namespace SCPSL_Global_Ban
 {
@@ -31,7 +28,6 @@ namespace SCPSL_Global_Ban
         }
         public override void OnEnable()
         {
-
             Info("SCPSL Global Ban v1.01 插件已加载 :)");
         }
         public override void Register()
