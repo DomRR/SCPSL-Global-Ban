@@ -14,7 +14,7 @@ namespace SCPSL_Global_Ban
         name = "SCPSL Global Ban",
         description = "",
         id = "rbq.global.ban",
-        version = "1.01",
+        version = "1.02",
         SmodMajor = 3,
         SmodMinor = 0,
         SmodRevision = 0
@@ -23,13 +23,16 @@ namespace SCPSL_Global_Ban
     {
         public static List<Int64> ban_id = new List<Int64>();
         public static List<string> ban_ip = new List<string>();
+
         public override void OnDisable()
         {
         }
+
         public override void OnEnable()
         {
-            Info("SCPSL Global Ban v1.01 插件已加载 :)");
+            Info("SCPSL Global Ban v" + Details.version + " 插件已加载 :)");
         }
+
         public override void Register()
         {
             Thread updateThread = new Thread(new ThreadStart(() => new ListUpdateThread()));
@@ -37,6 +40,7 @@ namespace SCPSL_Global_Ban
             AddEventHandler(typeof(IEventHandlerPlayerJoin), this, Priority.Normal);
             AddEventHandler(typeof(IEventHandlerRoundStart), this, Priority.Normal);
         }
+
         public void OnRoundStart(RoundStartEvent ev)
         {
             ban_id = new List<Int64>();
