@@ -4,7 +4,6 @@ using Smod2.Attributes;
 using Smod2.EventHandlers;
 using Smod2.Events;
 using System.Threading;
-using System;
 using System.Collections.Generic;
 
 namespace SCPSL_Global_Ban
@@ -14,15 +13,19 @@ namespace SCPSL_Global_Ban
         name = "SCPSL Global Ban",
         description = "",
         id = "rbq.global.ban",
-        version = "1.02",
+        version = "1.0.4",
         SmodMajor = 3,
         SmodMinor = 0,
         SmodRevision = 0
         )]
-    class Events : Plugin, IEventHandlerRoundStart, IEventHandlerPlayerJoin
+    class Events : Plugin, IEventHandlerRoundStart, IEventHandlerPlayerJoin, IEventHandlerLateUpdate
     {
-        public static List<Int64> ban_id = new List<Int64>();
+        public static List<long> ban_id = new List<long>();
         public static List<string> ban_ip = new List<string>();
+
+        IConfigFile Config => ConfigManager.Manager.Config;
+
+        bool first = false;
 
         public override void OnDisable()
         {
@@ -35,44 +38,44 @@ namespace SCPSL_Global_Ban
 
         public override void Register()
         {
-            Thread updateThread = new Thread(new ThreadStart(() => new ListUpdateThread()));
-            updateThread.Start();
+            new Thread(new ThreadStart(() => new ListUpdateThread())).Start();
             AddEventHandler(typeof(IEventHandlerPlayerJoin), this, Priority.Normal);
             AddEventHandler(typeof(IEventHandlerRoundStart), this, Priority.Normal);
+            AddEventHandler(typeof(IEventHandlerLateUpdate), this, Priority.Normal);
         }
 
         public void OnRoundStart(RoundStartEvent ev)
         {
-            ban_id = new List<Int64>();
+            ban_id = new List<long>();
             ban_ip = new List<string>();
-            Info("正在更新数据.");
-            Thread updateThread = new Thread(new ThreadStart(() => new ListUpdateThread()));
-            updateThread.Start();
+            Info("[RoundStart] 正在更新数据.");
+            new Thread(new ThreadStart(() => new ListUpdateThread())).Start();
         }
 
         public void OnPlayerJoin(PlayerJoinEvent ev)
         {
             Player player = ev.Player;
-            Int64.TryParse(player.SteamId, out Int64 id);
-            string ip = player.IpAddress.Split(':')[3];
-            /*Info(ip);
-            foreach (Int64 i in ban_id)
-            {
-                Info(i.ToString());
-            }
-            foreach (string s in ban_ip)
-            {
-                Info(s);
-            }*/
-            if (ban_id.Contains(id))
+            string message = Config.GetStringValue("global_ban_message", "你已经被封禁, 如有疑问请加QQ群: 437224732");
+            if (long.TryParse(player.SteamId, out long id) && ban_id.Contains(id))
             {
                 Info("踢出被封禁的 Id: " + id.ToString());
-                player.Ban(1);
+                player.Ban(0, message);
             }
+            string ip = player.IpAddress.Split(':')[3];
             if (ban_ip.Contains(ip))
             {
                 Info("踢出被封禁的 IP: " + ip);
-                player.Ban(1);
+                player.Ban(0, message);
+            }
+        }
+
+        public void OnLateUpdate(LateUpdateEvent ev)
+        {
+            if (!first)
+            {
+                first = true;
+                Info("[First] 正在更新数据.");
+                new Thread(new ThreadStart(() => new ListUpdateThread())).Start();
             }
         }
     }
